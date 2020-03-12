@@ -1,9 +1,3 @@
-/*
- *    main.js
- *    Copied from: UDEMY Course: Mastering Data Visualization with D3.js
- *    2.4 - Adding SVGs with D3
- */
-
 //Follow this: https://gist.github.com/mwburke/9873c09ac6c21d6ac9153e54892cf5ec
 
 d3.csv("/data/Data4Pakistan-BalochistanOnly.csv").then(function(data) {
