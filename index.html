@@ -15,15 +15,34 @@
   <body>
     <!-- Bootstrap grid setup -->
     <div class="container">
-      <p>Poverty trends in Balochistan districts<b>2016</b> to <b>2017</b></p>
+      <h3>Pakistan Data Stories</h3>
+      <p>
+        I was so excited to see that the the Government of Pakistan created a
+        <a href="http://www.data4pakistan.com/" target="_blank">data portal</a>
+        using poverty surveys. Lucky for me, they also released their raw (but
+        cleaned) data. I am using this to create dig deeper into the poverty
+        indicators to see what they can tell us and, perhaps more importantly,
+        what other questions we need to be asking. This is the first in what
+        will be a series of data stories.
+      </p>
+      <p>
+        Poverty trends in Pakistan districts between <b>2004</b> and
+        <b>2014</b>.
+        <p>Sources: Pakistan Social and Living Standards Measurement Survey, Multiple Indicator Survey Clusters</p>
+      </p>
       <div class="row">
-        <div id="chart"></div>
+        <div class="col-md-4" id="chart1"></div>
+        <div class="col-md-4" id="chart2"></div>
+        <div class="col-md-4" id="chart3"></div>
+        <div class="col-md-4" id="chart4"></div>
+        <div class="col-md-4" id="chart5"></div>
       </div>
     </div>
 
     <!-- External JS libraries -->
     <script src="js/d3.min.js"></script>
     <!-- Custom JS -->
+    <script src="js/mainSlopeGraph.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

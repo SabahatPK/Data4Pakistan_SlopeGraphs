@@ -1,104 +1,256 @@
-SlopeGraph = function(_parentElement, _allData, _keys, _dimensionSVG) {
+SlopeGraph = function(_parentElement, _someData, _someDomain) {
+  console.log(_someData);
+
   this.parentElement = _parentElement;
+  this.provData = _someData;
+  this.scaleDomain = _someDomain;
   this.initVis();
 };
 
-//initVis() contains all the static elements of viz
-StackedArea.prototype.initVis = function() {
+SlopeGraph.prototype.initVis = function() {
   let vis = this;
+
+  vis.opts = {
+    width: 400,
+    height: 500,
+    margin: { top: 10, right: 50, bottom: 45, left: 115 }
+  };
+
+  // Calculate area chart takes up out of entire svg
+  vis.chartHeight =
+    vis.opts.height - vis.opts.margin.top - vis.opts.margin.bottom;
+  vis.chartWidth =
+    vis.opts.width - vis.opts.margin.left - vis.opts.margin.right;
 
   vis.svg = d3
     .select(vis.parentElement)
     .append("svg")
-    .attr("class", "card")
-    .attr(
-      "width",
-      vis.dimensions.width +
-        vis.dimensions.marginLeft +
-        vis.dimensions.marginRight
-    )
-    .attr(
-      "height",
-      vis.dimensions.height +
-        vis.dimensions.marginTop +
-        vis.dimensions.marginBottom
-    );
+    .attr("width", vis.opts.width)
+    .attr("height", vis.opts.height);
 
-  if (vis.keys[0] === "Active Accounts") {
-    vis.title = "Active to Inactive Accounts";
-  } else if (vis.keys[0] === "Active Agents") {
-    vis.title = "Active to Inactive Agents";
-  } else {
-    vis.title = vis.allData[0]["Province"];
+  // Create scale for positioning data correctly in chart
+  vis.vertScale = d3
+    .scaleLinear()
+    .domain(vis.scaleDomain)
+    .range([vis.opts.margin.bottom, vis.chartHeight]);
+
+  //Add Change property to each attribute to denote whether the district improved or got worse or remained the same.
+  for (var i = 0; i < vis.provData.length; i++) {
+    change = vis.provData[i]["Last"] - vis.provData[i]["First"];
+    if (change < -3) {
+      vis.provData[i]["Change"] = "positive";
+    } else if (change > 5) {
+      vis.provData[i]["Change"] = "negative";
+    } else {
+      vis.provData[i]["Change"] = "neutral";
+    }
   }
+
+  // First, calculate the right and left side chart placements
+  for (let i = 0; i < vis.provData.length; i++) {
+    vis.provData[i]["AfterY"] = vis.vertScale(vis.provData[i]["Last"]);
+    vis.provData[i]["BeforeY"] = vis.vertScale(vis.provData[i]["First"]);
+  }
+
+  // Next, use a basic heuristic to pull labels up or down
+  // If next item is too close to next one, move label up
+  // If next item is too close and item above has been moved up, keep the same value,
+  // and move next value down
+
+  vis.provData.sort(function(a, b) {
+    return b.First - a.First;
+  });
+
+  for (var i = 1; i < vis.provData.length - 1; i++) {
+    if (vis.provData[i]["BeforeY"] - vis.provData[i + 1]["BeforeY"] < 15) {
+      if (vis.provData[i - 1]["BeforeY"] - vis.provData[i]["BeforeY"] < 15) {
+        vis.provData[i + 1]["BeforeY"] = vis.provData[i + 1]["BeforeY"] - 10;
+      } else {
+        vis.provData[i]["BeforeY"] = vis.provData[i]["BeforeY"] + 10;
+      }
+    }
+  }
+
+  vis.provData.sort(function(a, b) {
+    return b.Last - a.Last;
+  });
+
+  for (var i = 1; i < vis.provData.length - 1; i++) {
+    if (vis.provData[i]["AfterY"] - vis.provData[i + 1]["AfterY"] < 15) {
+      if (vis.provData[i - 1]["AfterY"] - vis.provData[i]["AfterY"] < 15) {
+        vis.provData[i + 1]["AfterY"] = vis.provData[i + 1]["AfterY"] - 10;
+      } else {
+        vis.provData[i]["AfterY"] = vis.provData[i]["AfterY"] + 10;
+      }
+    } else if (vis.provData[i - 1]["AfterY"] - vis.provData[i]["AfterY"] < 15) {
+      vis.provData[i]["AfterY"] = vis.provData[i]["AfterY"] - 10;
+    }
+  }
+
+  vis.provData.sort(function(a, b) {
+    return b.First - a.First;
+  });
+
+  // Create slopegraph labels
+  vis.svg
+    .selectAll("text.labels")
+    .data(vis.provData)
+    .enter()
+    .append("text")
+    .text(function(d) {
+      return d.District;
+    })
+    .attr("class", function(d) {
+      return "label " + d.Change;
+    })
+    .attr("text-anchor", "end")
+    .attr("x", vis.opts.margin.left * 0.6)
+    .attr("y", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
+    })
+    .attr("dy", ".35em");
+
+  // Create slopegraph left value labels
+  vis.svg
+    .selectAll("text.leftvalues")
+    .data(vis.provData)
+    .enter()
+    .append("text")
+    .attr("class", function(d) {
+      return d.Change;
+    })
+    .text(function(d) {
+      return Math.round(d.First) + "%";
+    })
+    .attr("text-anchor", "end")
+    .attr("x", vis.opts.margin.left * 0.85)
+    .attr("y", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
+    })
+    .attr("dy", ".35em");
+
+  // Create slopegraph left value labels
+  vis.svg
+    .selectAll("text.rightvalues")
+    .data(vis.provData)
+    .enter()
+    .append("text")
+    .attr("class", function(d) {
+      return d.Change;
+    })
+    .text(function(d) {
+      return Math.round(d.Last) + "%";
+    })
+    .attr("text-anchor", "start")
+    .attr("x", vis.chartWidth + vis.opts.margin.right)
+    .attr("y", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - d.AfterY;
+    })
+    .attr("dy", ".35em");
+
+  // Create slopegraph lines
+  vis.svg
+    .selectAll("line.slope-line")
+    .data(vis.provData)
+    .enter()
+    .append("line")
+    .attr("class", function(d) {
+      return "slope-line " + d.Change + " " + d.District;
+    })
+    .attr("x1", vis.opts.margin.left)
+    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("y1", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
+    })
+    .attr("y2", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
+    });
+  // .on("mouseover", mouseover)
+  // .on("mouseout", mouseout);
+
+  // Create slopegraph left circles
+  vis.svg
+    .selectAll("line.left-circle")
+    .data(vis.provData)
+    .enter()
+    .append("circle")
+    .attr("class", function(d) {
+      return d.Change;
+    })
+    .attr("cx", vis.opts.margin.left)
+    .attr("cy", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
+    })
+    .attr("r", 3);
+
+  // Create slopegraph right circles
+  vis.svg
+    .selectAll("line.left-circle")
+    .data(vis.provData)
+    .enter()
+    .append("circle")
+    .attr("class", function(d) {
+      return d.Change;
+    })
+    .attr("cx", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("cy", function(d) {
+      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
+    })
+    .attr("r", 3);
+
+  // Create bottom area denoting years
+  //These have to be a few pixels below the lowest y-value from line-graph.
+  vis.svg
+    .append("line")
+    .attr("x1", vis.opts.margin.left)
+    .attr("x2", vis.opts.margin.left)
+    .attr("y1", vis.opts.height - vis.opts.margin.bottom)
+    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
+    .attr("stroke", "grey")
+    .attr("stroke-width", "2px");
+
+  vis.svg
+    .append("line")
+    .attr("x1", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("y1", vis.opts.height - vis.opts.margin.bottom)
+    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
+    .attr("stroke", "grey")
+    .attr("stroke-width", "2px");
+
+  vis.svg
+    .append("line")
+    .attr("x1", vis.opts.margin.left)
+    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("y1", vis.opts.height - vis.opts.margin.bottom * 0.7)
+    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
+    .attr("stroke", "grey")
+    .attr("stroke-width", "2px");
 
   vis.svg
     .append("text")
-    .attr("x", vis.dimensions.width - 30)
-    .attr("y", 16)
-    .attr("text-anchor", "middle")
-    .style("font-size", "90%")
-    .style("font-weight", "bold")
-    .attr("class", "graphTitle")
-    .text(vis.title);
+    .text("2004")
+    .attr("class", "neutral")
+    .attr("x", vis.opts.margin.left)
+    .attr("y", vis.opts.height - vis.opts.margin.bottom * 0.05)
+    .attr("text-anchor", "start");
 
-  vis.g = vis.svg
-    .append("g")
-    .attr(
-      "transform",
-      "translate(" +
-        vis.dimensions.marginLeft +
-        ", " +
-        vis.dimensions.marginTop +
-        ")"
-    );
+  vis.svg
+    .append("text")
+    .text("2014")
+    .attr("class", "neutral")
+    .attr("x", vis.chartWidth + vis.opts.margin.right * 0.75)
+    .attr("y", vis.opts.height - vis.opts.margin.bottom * 0.05)
+    .attr("text-anchor", "end");
 
-  //Build scales:
-  vis.xScale1 = d3.scaleTime().range([0, vis.dimensions.width]);
-  vis.yScale1 = d3.scaleLinear().range([vis.dimensions.height, 0]);
-  vis.color1 = d3.scaleOrdinal(d3.schemePaired).domain(vis.keys);
+  vis.wrangleData();
+};
 
-  //Define axes:
-  vis.xAxis1 = d3.axisBottom(vis.xScale1).ticks(3);
-  vis.yAxis1 = d3.axisLeft(vis.yScale1).ticks(5);
+SlopeGraph.prototype.wrangleData = function() {
+  let vis = this;
+  vis.updateVis();
+};
 
-  //Place axes on chart:
-  vis.xAxisCall = vis.g
-    .append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + vis.dimensions.height + ")");
-  vis.yAxisCall = vis.g.append("g").attr("class", "y axis");
-
-  //Begin building the graph:
-  vis.justDates = vis.allData.map(each => each.Date);
-  vis.minAndMaxDates = d3.extent(vis.justDates);
-
-  vis.largestKeysValue = d3.max(
-    vis.allData.map(each => each[vis.keys[0]] + each[vis.keys[1]])
-  );
-
-  vis.stack = d3.stack().keys(vis.keys);
-
-  vis.area1 = d3
-    .area()
-    .x(function(d) {
-      return vis.xScale1(d.data.Date);
-    })
-    .y0(function(d) {
-      return vis.yScale1(d[0]);
-    })
-    .y1(function(d) {
-      return vis.yScale1(d[1]);
-    });
-
-  vis.sliderValues = $("#slider")
-    .slider("values")
-    .map(each => new Date(each));
-
-  vis.sliderValuesOne = vis.sliderValues[0];
-  vis.sliderValuesTwo = vis.sliderValues[1];
-
-  vis.keys[0] === "Female" ? null : vis.addLegend();
-
-  vis.wrangleData(vis.sliderValuesOne, vis.sliderValuesTwo);
+SlopeGraph.prototype.updateVis = function() {
+  let vis = this;
 };
