@@ -10,13 +10,13 @@ line {
 line.positive {
   stroke: #1b4fa3;
   stroke-width: 1px;
-  stroke-opacity: 0.8;
+  stroke-opacity: 0.3;
 }
 
 line.negative {
   stroke: #991616;
   stroke-width: 1px;
-  stroke-opacity: 0.8;
+  stroke-opacity: 0.3;
 }
 
 line.neutral {
