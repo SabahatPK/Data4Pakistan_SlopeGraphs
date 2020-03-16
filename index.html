@@ -50,7 +50,7 @@
     <!-- Bootstrap grid setup -->
     <div class="container">
 
-      <h5>What are the poverty trends for each district?</h5>
+      <h5>How have district-level rates of poverty changed in the decade between 2004 and 2014? </h5>
       
       <div class="row">
         <div class="card">
@@ -58,12 +58,11 @@
         <div class="row">
           <div class="col-sm-8" id="chart1"></div>
           <div class="col-sm-4 descGraph">
-            <h6 id="provinceNameBaloch"></h6>
-            <h6 id="provinceNameICT"></h6>
-            <h6 id="provinceNamePunjab"></h6>
-            <h6 id="provinceNameSindh"></h6>
-            <h6 id="provinceNameKPK"></h6>
-            <p>Add some words talking about the trend.</p>
+            <h6 id="provNameKPK"></h6>
+            <ul>
+              <li>All districts experienced steep declines in poverty rates.</li><br>
+              <li>The highest poverty rate in 2014 is nearly 10 percentage points lower than lowest poverty rate in 2004.</li>
+            </ul>
           </div>
         </div>     
        </div>
@@ -73,7 +72,12 @@
         <div class="card-body">
          <div class="row">
            <div class="col-md-8" id="chart2"></div>
-           <div class="col-md-4 descGraph">Add some words talking about the trend.</div>
+           <div class="col-md-4 descGraph">
+            <h6 id="provNamePunjab"></h6>
+          <ul>
+            <li>All districts experienced declines in poverty rates.</li><br>            
+          </ul>
+          </div>
          </div>     
         </div>
        </div>
@@ -82,7 +86,14 @@
         <div class="card-body">
          <div class="row">
            <div class="col-md-8" id="chart3"></div>
-           <div class="col-md-4 descGraph">Add some words talking about the trend.</div>
+           <div class="col-md-4 descGraph">
+            <h6 id="provNameICT"></h6>
+            <ul>
+              <li>FCT is less of a province and more of a city-province. Islamabad, it's capital, and the surrounding areas make up a large portion of FCT. </li><br>
+              <li>It would be interesting to juxtapose poverty indicator of Islamabad with Rawalpindi, a city from which many day laborers commute every day.</li><br>
+              <li>Also, it is unclear if the expat community is included in this survey. If so, excluding them could be more insightful.</li>
+            </ul>
+          </div>
          </div>     
         </div>
        </div>
@@ -91,7 +102,13 @@
         <div class="card-body">
          <div class="row">
            <div class="col-md-8" id="chart4"></div>
-           <div class="col-md-4 descGraph">Add some words talking about the trend.</div>
+           <div class="col-md-4 descGraph">            
+            <h6 id="provNameSindh"></h6>   
+           <ul>
+             <li>The first thing that stands out is the stark contrast in poverty rates between Karachi and the rest of the province.</li><br>
+             <li>Also, too many districts seem to have experienced no improvement in poverty and 2 districts have worsened.</li><br>
+           </ul>
+            </div>
          </div>     
         </div>
        </div>
@@ -100,30 +117,33 @@
         <div class="card-body">
          <div class="row">
            <div class="col-md-8" id="chart5"></div>
-           <div class="col-md-4 descGraph">Add some words talking about the trend.</div>
+           <div class="col-md-4 descGraph">
+            <h6 id="provNameBaloch"></h6> 
+            <ul>
+              <li>
+                Districts in Balochistan show the greatest heterogeneity; 9 of the provinces showed a marked increase in poverty, 5 did not change and 10 improved.   
+              </li><br>
+              <li>The range of poverty is more or less the same; in 2004, it ranged from 44% to 74% and 10 years later, it ranged from 41% to 74%.</li>
+            </ul>
+            </div>
          </div>     
         </div>
        </div>
         
-        <!-- <div class="col-md-4" id="chart2"></div>
-        <div class="col-md-4" id="chart3"></div>
-        <div class="col-md-4" id="chart4"></div>
-        <div class="col-md-4" id="chart5"></div> -->
+
       </div>
-      <div id = "about">
+      <div class = "descGraph">
         <h6>About</h6>
         <p>
-          I was so excited to see that the the Government of Pakistan created a
-          <a href="http://www.data4pakistan.com/" target="_blank">data portal</a>
-          using poverty surveys. Lucky for me, they also released their raw (but
-          cleaned) data. I am using this to create dig deeper into the poverty
-          indicators to see what they can tell us and, perhaps more importantly,
-          what other questions we need to be asking. This is the first in what
-          will be a series of data stories.
+          This data visualization elucidates the story behind the data used in the 
+          <a href="http://www.data4pakistan.com/" target="_blank">data portal</a> 
+          created by the Government of Pakistan. 
+          
+          Perhaps more importantly, it can clarify what new questions we need to be asking. 
+          
+          This is the first in what will be a series of data stories.
         </p>
-        <p>
-          Poverty trends in Pakistan districts between <b>2004</b> and
-          <b>2014</b>.
+        
           <p>Sources: Pakistan Social and Living Standards Measurement Survey, Multiple Indicator Survey Clusters</p>
         </p>
       </div>
