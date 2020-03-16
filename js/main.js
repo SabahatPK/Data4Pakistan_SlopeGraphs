@@ -14,97 +14,109 @@ let updatedICTData = [];
 let updatedKPKData = [];
 let updatedPunjabData = [];
 
+let dataBalochDomain;
+let dataSindhDomain;
+let dataICTDomain;
+let dataKPKDomain;
+let dataPunjabDomain;
+
 let slopeGraphBaloch;
 let slopeGraphSindh;
 let slopeGraphICT;
 let slopeGraphKPK;
 let slopeGraphPunjab;
 
+let provNameBaloch = "";
+let provNameICT = "";
+let provNameKPK = "";
+let provNamePunjab = "";
+let provNameSindh = "";
+
+//DATA clean-up/manipulation:
+//1. Downloaded Data4Pak dataset into Excel.
+//2. EXCEL - Deleted out all cols except those with data.Province === Balochistan and col = "Poverty Rate (%)"
+//3. EXCEL - Deleted all rows without value for "Poverty Rate (%)"
+//4. EXCEL - Ordered by Year
+//5. Saved as csv, loaded into main.js for further manipulation:
 Promise.all(promises).then(function(data) {
-  let dataBaloch = data[0];
-  let dataSindh = data[1];
-  let dataICT = data[2];
-  let dataKPK = data[3];
-  let dataPunjab = data[4];
+  for (let i = 0; i < data.length; i++) {
+    let allPovertyData = [];
 
-  //DATA clean-up/manipulation:
-  //1. Downloaded Data4Pak dataset into Excel.
-  //2. EXCEL - Deleted out all cols except those with data.Province === Balochistan and col = "Poverty Rate (%)"
-  //3. EXCEL - Deleted all rows without value for "Poverty Rate (%)"
-  //4. EXCEL - Ordered by Year
-  //5. Saved as csv, loaded into main.js for further manipulation:
+    //Go into each province's array and build one object out of every two:
+    for (let j = 0; j < data[i].length; j += 2) {
+      let updatedObj = { District: "", First: "", Last: "" };
+      updatedObj.District = data[i][j].District;
+      updatedObj.First = parseInt(data[i][j]["Poverty Rate (%)"]);
+      updatedObj.Last = parseInt(data[i][j + 1]["Poverty Rate (%)"]);
+      if (data[i][j]["Province"] === "Balochistan") {
+        updatedBalochData.push(updatedObj);
+        provNameBaloch = "Balochistan";
+      } else if (data[i][j]["Province"] === "Federal Capital Territory") {
+        updatedICTData.push(updatedObj);
+        provNameICT = "Federal Capital Territory";
+      } else if (data[i][j]["Province"] === "Khyber Pakhtunkhwa") {
+        updatedKPKData.push(updatedObj);
+        provNameKPK = "Khyber Pakhtunkhwa";
+      } else if (data[i][j]["Province"] === "Punjab") {
+        updatedPunjabData.push(updatedObj);
+        provNamePunjab = "Punjab";
+      } else {
+        updatedSindhData.push(updatedObj);
+        provNameSindh = "Sindh";
+      }
+    }
 
-  let allPovertyData = [];
-  for (let i = 0; i < dataBaloch.length; i += 2) {
-    allPovertyData.push(parseInt(dataBaloch[i]["Poverty Rate (%)"]));
-    let updatedObj = { District: "", First: "", Last: "" };
-    updatedObj.District = dataBaloch[i].District;
-    updatedObj.First = parseInt(dataBaloch[i]["Poverty Rate (%)"]);
-    updatedObj.Last = parseInt(dataBaloch[i + 1]["Poverty Rate (%)"]);
-    updatedBalochData.push(updatedObj);
-  }
-  let dataBalochDomain = d3.extent(allPovertyData);
-
-  for (let i = 0; i < dataSindh.length; i += 2) {
-    allPovertyData.push(parseInt(dataSindh[i]["Poverty Rate (%)"]));
-    let updatedObj = { District: "", First: "", Last: "" };
-    updatedObj.District = dataSindh[i].District;
-    updatedObj.First = parseInt(dataSindh[i]["Poverty Rate (%)"]);
-    updatedObj.Last = parseInt(dataSindh[i + 1]["Poverty Rate (%)"]);
-    updatedSindhData.push(updatedObj);
-  }
-
-  let dataSindhDomain = d3.extent(allPovertyData);
-
-  for (let i = 0; i < dataICT.length; i += 2) {
-    allPovertyData.push(parseInt(dataICT[i]["Poverty Rate (%)"]));
-    let updatedObj = { District: "", First: "", Last: "" };
-    updatedObj.District = dataICT[i].District;
-    updatedObj.First = parseInt(dataICT[i]["Poverty Rate (%)"]);
-    updatedObj.Last = parseInt(dataICT[i + 1]["Poverty Rate (%)"]);
-    updatedICTData.push(updatedObj);
-  }
-
-  let dataICTDomain = d3.extent(allPovertyData);
-
-  for (let i = 0; i < dataKPK.length; i += 2) {
-    allPovertyData.push(parseInt(dataKPK[i]["Poverty Rate (%)"]));
-    let updatedObj = { District: "", First: "", Last: "" };
-    updatedObj.District = dataKPK[i].District;
-    updatedObj.First = parseInt(dataKPK[i]["Poverty Rate (%)"]);
-    updatedObj.Last = parseInt(dataKPK[i + 1]["Poverty Rate (%)"]);
-    updatedKPKData.push(updatedObj);
+    //Go into each province's array and calc min and max poverty rate for each:
+    for (let j = 0; j < data[i].length; j++) {
+      allPovertyData.push(parseInt(data[i][j]["Poverty Rate (%)"]));
+      if (data[i][j]["Province"] === "Balochistan") {
+        dataBalochDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Federal Capital Territory") {
+        dataICTDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Khyber Pakhtunkhwa") {
+        dataKPKDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Punjab") {
+        dataPunjabDomain = d3.extent(allPovertyData);
+      } else {
+        dataSindhDomain = d3.extent(allPovertyData);
+      }
+    }
   }
 
-  let dataKPKDomain = d3.extent(allPovertyData);
-
-  for (let i = 0; i < dataPunjab.length; i += 2) {
-    allPovertyData.push(parseInt(dataPunjab[i]["Poverty Rate (%)"]));
-    let updatedObj = { District: "", First: "", Last: "" };
-    updatedObj.District = dataPunjab[i].District;
-    updatedObj.First = parseInt(dataPunjab[i]["Poverty Rate (%)"]);
-    updatedObj.Last = parseInt(dataPunjab[i + 1]["Poverty Rate (%)"]);
-    updatedPunjabData.push(updatedObj);
-  }
-
-  let dataPunjabDomain = d3.extent(allPovertyData);
-
-  slopeGraphBaloch = new SlopeGraph(
+  slopeGraphKPK = new SlopeGraph(
     "#chart1",
-    updatedBalochData,
-    dataBalochDomain
+    updatedKPKData,
+    dataKPKDomain,
+    "#provNameKPK",
+    provNameKPK
+  );
+  slopeGraphPunjab = new SlopeGraph(
+    "#chart2",
+    updatedPunjabData,
+    dataPunjabDomain,
+    "#provNamePunjab",
+    provNamePunjab
+  );
+  slopeGraphICT = new SlopeGraph(
+    "#chart3",
+    updatedICTData,
+    dataICTDomain,
+    "#provNameICT",
+    provNameICT
   );
   slopeGraphSindh = new SlopeGraph(
-    "#chart2",
+    "#chart4",
     updatedSindhData,
-    dataSindhDomain
+    dataSindhDomain,
+    "#provNameSindh",
+    provNameSindh
   );
-  slopeGraphICT = new SlopeGraph("#chart3", updatedICTData, dataICTDomain);
-  slopeGraphKPK = new SlopeGraph("#chart4", updatedKPKData, dataKPKDomain);
-  slopeGraphPunjab = new SlopeGraph(
+  slopeGraphBaloch = new SlopeGraph(
     "#chart5",
-    updatedPunjabData,
-    dataPunjabDomain
+    updatedBalochData,
+    dataBalochDomain,
+    "#provNameBaloch",
+    provNameBaloch
   );
 
   //END OF DATA LOADING

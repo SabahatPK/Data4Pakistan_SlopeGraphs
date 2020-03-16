@@ -1,14 +1,30 @@
-SlopeGraph = function(_parentElement, _someData, _someDomain) {
-  console.log(_someData);
-
+SlopeGraph = function(
+  _parentElement,
+  _someData,
+  _someDomain,
+  _provNamePlaceholder,
+  _provName
+) {
   this.parentElement = _parentElement;
   this.provData = _someData;
   this.scaleDomain = _someDomain;
+  this.provNamePlaceholder = _provNamePlaceholder;
+  this.provName = _provName;
   this.initVis();
 };
 
 SlopeGraph.prototype.initVis = function() {
   let vis = this;
+
+  console.log(vis.provNamePlaceholder);
+  console.log(vis.provName);
+
+  //START HERE: Only first shart is showing province name;
+  //and that is only the last one sent in from main.js
+  $(vis.provNamePlaceholder).text(vis.provName);
+  // $("#provinceName").textContent = vis.provName;
+  // $("#provinceName").innerText = vis.provName;
+  // $("#provinceName").innerHTML = vis.provName;
 
   vis.opts = {
     width: 400,
@@ -199,7 +215,7 @@ SlopeGraph.prototype.initVis = function() {
     .attr("r", 3);
 
   // Create bottom area denoting years
-  //These have to be a few pixels below the lowest y-value from line-graph.
+
   vis.svg
     .append("line")
     .attr("x1", vis.opts.margin.left)
