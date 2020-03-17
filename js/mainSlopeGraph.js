@@ -10,6 +10,7 @@ SlopeGraph = function(
   this.scaleDomain = _someDomain;
   this.provNamePlaceholder = _provNamePlaceholder;
   this.provName = _provName;
+
   this.initVis();
 };
 
@@ -19,9 +20,9 @@ SlopeGraph.prototype.initVis = function() {
   $(vis.provNamePlaceholder).text(vis.provName);
 
   vis.opts = {
-    width: 400,
+    width: 600,
     height: 500,
-    margin: { top: 10, right: 50, bottom: 45, left: 115 }
+    margin: { top: 10, right: 50, bottom: 45, left: 125 }
   };
 
   // Calculate area chart takes up out of entire svg
@@ -33,8 +34,9 @@ SlopeGraph.prototype.initVis = function() {
   vis.svg = d3
     .select(vis.parentElement)
     .append("svg")
-    .attr("width", vis.opts.width)
-    .attr("height", vis.opts.height);
+    .attr("viewBox", `0 0 600 500`);
+  // .attr("width", vis.opts.width)
+  // .attr("height", vis.opts.height);
 
   // Create scale for positioning data correctly in chart
   vis.vertScale = d3
@@ -137,7 +139,7 @@ SlopeGraph.prototype.initVis = function() {
     })
     .attr("dy", ".35em");
 
-  // Create slopegraph left value labels
+  // Create slopegraph right value labels
   vis.svg
     .selectAll("text.rightvalues")
     .data(vis.provData)

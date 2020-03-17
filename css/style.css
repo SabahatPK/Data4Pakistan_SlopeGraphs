@@ -10,10 +10,20 @@ body {
   margin: auto;
   margin-top: 20px;
   padding: auto;
+  width: 75%;
 }
 
 .descGraph {
-  font-size: 12px;
+  /* font-size: 12px; */
+  font-size: 1vw;
+}
+
+h5 {
+  font-size: 2vw;
+  margin-top: 50px;
+  margin-left: 150px;
+  /* text-align: center; */
+  width: 65%;
 }
 
 #logo {
@@ -70,4 +80,11 @@ circle.negative {
 
 circle.neutral {
   fill: grey;
+}
+
+/* START of MEDIA QUERIES */
+@media (max-width: 1200px) {
+}
+
+@media (max-width: 768px) {
 }

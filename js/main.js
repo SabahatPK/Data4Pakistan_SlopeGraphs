@@ -90,6 +90,7 @@ Promise.all(promises).then(function(data) {
     "#provNameKPK",
     provNameKPK
   );
+
   slopeGraphPunjab = new SlopeGraph(
     "#chart2",
     updatedPunjabData,
