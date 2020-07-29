@@ -1,0 +1,23 @@
+{
+  "name": "Data4Pakistan_SlopeGraphs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SabahatPK/Data4Pakistan_SlopeGraphs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SabahatPK/Data4Pakistan_SlopeGraphs/issues"
+  },
+  "homepage": "https://github.com/SabahatPK/Data4Pakistan_SlopeGraphs#readme",
+  "dependencies": {
+    "labella": "^1.1.4"
+  }
+}

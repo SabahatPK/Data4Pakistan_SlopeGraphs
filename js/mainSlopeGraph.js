@@ -1,4 +1,4 @@
-SlopeGraph = function(
+SlopeGraph = function (
   _parentElement,
   _someData,
   _someDomain,
@@ -14,7 +14,7 @@ SlopeGraph = function(
   this.initVis();
 };
 
-SlopeGraph.prototype.initVis = function() {
+SlopeGraph.prototype.initVis = function () {
   let vis = this;
 
   $(vis.provNamePlaceholder).text(vis.provName);
@@ -22,7 +22,7 @@ SlopeGraph.prototype.initVis = function() {
   vis.opts = {
     width: 600,
     height: 500,
-    margin: { top: 10, right: 50, bottom: 45, left: 125 }
+    margin: { top: 10, right: 50, bottom: 45, left: 125 },
   };
 
   // Calculate area chart takes up out of entire svg
@@ -41,7 +41,8 @@ SlopeGraph.prototype.initVis = function() {
   // Create scale for positioning data correctly in chart
   vis.vertScale = d3
     .scaleLinear()
-    .domain(vis.scaleDomain)
+    // .domain(vis.scaleDomain)
+    .domain([0, 100])
     .range([vis.opts.margin.bottom, vis.chartHeight]);
 
   //Add Change property to each attribute to denote whether the district improved or got worse or remained the same.
@@ -57,9 +58,13 @@ SlopeGraph.prototype.initVis = function() {
   }
 
   // First, calculate the right and left side chart placements
+  let allAfterY = [],
+    allBeforeY = [];
   for (let i = 0; i < vis.provData.length; i++) {
     vis.provData[i]["AfterY"] = vis.vertScale(vis.provData[i]["Last"]);
     vis.provData[i]["BeforeY"] = vis.vertScale(vis.provData[i]["First"]);
+    allAfterY.push(vis.provData[i]["AfterY"]);
+    allBeforeY.push(vis.provData[i]["BeforeY"]);
   }
 
   // Next, use a basic heuristic to pull labels up or down
@@ -67,7 +72,7 @@ SlopeGraph.prototype.initVis = function() {
   // If next item is too close and item above has been moved up, keep the same value,
   // and move next value down
 
-  vis.provData.sort(function(a, b) {
+  vis.provData.sort(function (a, b) {
     return b.First - a.First;
   });
 
@@ -81,7 +86,7 @@ SlopeGraph.prototype.initVis = function() {
     }
   }
 
-  vis.provData.sort(function(a, b) {
+  vis.provData.sort(function (a, b) {
     return b.Last - a.Last;
   });
 
@@ -97,7 +102,7 @@ SlopeGraph.prototype.initVis = function() {
     }
   }
 
-  vis.provData.sort(function(a, b) {
+  vis.provData.sort(function (a, b) {
     return b.First - a.First;
   });
 
@@ -107,15 +112,15 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("text")
-    .text(function(d) {
+    .text(function (d) {
       return d.District;
     })
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return "label " + d.Change;
     })
     .attr("text-anchor", "end")
     .attr("x", vis.opts.margin.left * 0.6)
-    .attr("y", function(d) {
+    .attr("y", function (d) {
       return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
     })
     .attr("dy", ".35em");
@@ -126,15 +131,15 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("text")
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return d.Change;
     })
-    .text(function(d) {
+    .text(function (d) {
       return Math.round(d.First) + "%";
     })
     .attr("text-anchor", "end")
     .attr("x", vis.opts.margin.left * 0.85)
-    .attr("y", function(d) {
+    .attr("y", function (d) {
       return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
     })
     .attr("dy", ".35em");
@@ -145,15 +150,15 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("text")
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return d.Change;
     })
-    .text(function(d) {
+    .text(function (d) {
       return Math.round(d.Last) + "%";
     })
     .attr("text-anchor", "start")
     .attr("x", vis.chartWidth + vis.opts.margin.right)
-    .attr("y", function(d) {
+    .attr("y", function (d) {
       return vis.opts.margin.top + vis.chartHeight - d.AfterY;
     })
     .attr("dy", ".35em");
@@ -164,15 +169,15 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("line")
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return "slope-line " + d.Change + " " + d.District;
     })
     .attr("x1", vis.opts.margin.left)
     .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("y1", function(d) {
+    .attr("y1", function (d) {
       return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
     })
-    .attr("y2", function(d) {
+    .attr("y2", function (d) {
       return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
     });
   // .on("mouseover", mouseover)
@@ -184,11 +189,11 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("circle")
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return d.Change;
     })
     .attr("cx", vis.opts.margin.left)
-    .attr("cy", function(d) {
+    .attr("cy", function (d) {
       return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
     })
     .attr("r", 3);
@@ -199,17 +204,16 @@ SlopeGraph.prototype.initVis = function() {
     .data(vis.provData)
     .enter()
     .append("circle")
-    .attr("class", function(d) {
+    .attr("class", function (d) {
       return d.Change;
     })
     .attr("cx", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("cy", function(d) {
+    .attr("cy", function (d) {
       return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
     })
     .attr("r", 3);
 
   // Create bottom area denoting years
-
   vis.svg
     .append("line")
     .attr("x1", vis.opts.margin.left)
@@ -256,11 +260,11 @@ SlopeGraph.prototype.initVis = function() {
   vis.wrangleData();
 };
 
-SlopeGraph.prototype.wrangleData = function() {
+SlopeGraph.prototype.wrangleData = function () {
   let vis = this;
   vis.updateVis();
 };
 
-SlopeGraph.prototype.updateVis = function() {
+SlopeGraph.prototype.updateVis = function () {
   let vis = this;
 };
