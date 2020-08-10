@@ -17,254 +17,199 @@ SlopeGraph = function (
 SlopeGraph.prototype.initVis = function () {
   let vis = this;
 
-  $(vis.provNamePlaceholder).text(vis.provName);
-
-  vis.opts = {
-    width: 600,
-    height: 500,
-    margin: { top: 10, right: 50, bottom: 45, left: 125 },
+  vis.options = {
+    margin: { left: 80, right: 20, top: 20, bottom: 20 },
+    initialWidth: 300,
+    initialHeight: 500,
   };
 
-  // Calculate area chart takes up out of entire svg
-  vis.chartHeight =
-    vis.opts.height - vis.opts.margin.top - vis.opts.margin.bottom;
-  vis.chartWidth =
-    vis.opts.width - vis.opts.margin.left - vis.opts.margin.right;
+  vis.innerWidth =
+    vis.options.initialWidth -
+    vis.options.margin.left -
+    vis.options.margin.right;
+  vis.innerHeight =
+    vis.options.initialHeight -
+    vis.options.margin.top -
+    vis.options.margin.bottom;
+  vis.colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
-  vis.svg = d3
+  vis.mySVG = d3
     .select(vis.parentElement)
     .append("svg")
-    .attr("viewBox", `0 0 600 500`);
-  // .attr("width", vis.opts.width)
-  // .attr("height", vis.opts.height);
+    .attr("class", "mySVG")
+    .attr("width", vis.options.initialWidth)
+    .attr("height", vis.options.initialHeight)
+    .append("g")
+    //OUTS: can magical numbers be removed?
+    .attr("transform", "translate(" + 10 + "," + -80 + ")");
+
+  function labelText(d) {
+    return d.District + " " + d.First;
+  }
+
+  // compute labels dimension
+  vis.dummyText = vis.mySVG.append("text");
 
   // Create scale for positioning data correctly in chart
   vis.vertScale = d3
     .scaleLinear()
-    // .domain(vis.scaleDomain)
     .domain([0, 100])
-    .range([vis.opts.margin.bottom, vis.chartHeight]);
+    .range([vis.options.margin.bottom, vis.innerHeight])
+    .nice();
 
-  //Add Change property to each attribute to denote whether the district improved or got worse or remained the same.
-  for (var i = 0; i < vis.provData.length; i++) {
-    change = vis.provData[i]["Last"] - vis.provData[i]["First"];
-    if (change < -3) {
-      vis.provData[i]["Change"] = "positive";
-    } else if (change > 5) {
-      vis.provData[i]["Change"] = "negative";
-    } else {
-      vis.provData[i]["Change"] = "neutral";
-    }
-  }
-
-  // First, calculate the right and left side chart placements
-  let allAfterY = [],
-    allBeforeY = [];
-  for (let i = 0; i < vis.provData.length; i++) {
-    vis.provData[i]["AfterY"] = vis.vertScale(vis.provData[i]["Last"]);
-    vis.provData[i]["BeforeY"] = vis.vertScale(vis.provData[i]["First"]);
-    allAfterY.push(vis.provData[i]["AfterY"]);
-    allBeforeY.push(vis.provData[i]["BeforeY"]);
-  }
-
-  // Next, use a basic heuristic to pull labels up or down
-  // If next item is too close to next one, move label up
-  // If next item is too close and item above has been moved up, keep the same value,
-  // and move next value down
-
-  vis.provData.sort(function (a, b) {
-    return b.First - a.First;
+  vis.nodes = vis.provData.map(function (district) {
+    let bbox = vis.dummyText.text(labelText(district))._groups[0][0].getBBox();
+    district.h = bbox.height;
+    district.w = bbox.width;
+    return new labella.Node(
+      vis.vertScale(district.First),
+      district.h + 4,
+      district
+    );
   });
 
-  for (var i = 1; i < vis.provData.length - 1; i++) {
-    if (vis.provData[i]["BeforeY"] - vis.provData[i + 1]["BeforeY"] < 15) {
-      if (vis.provData[i - 1]["BeforeY"] - vis.provData[i]["BeforeY"] < 15) {
-        vis.provData[i + 1]["BeforeY"] = vis.provData[i + 1]["BeforeY"] - 10;
-      } else {
-        vis.provData[i]["BeforeY"] = vis.provData[i]["BeforeY"] + 10;
-      }
-    }
-  }
+  vis.dummyText.remove();
 
-  vis.provData.sort(function (a, b) {
-    return b.Last - a.Last;
-  });
+  // ---------------------------------------------------
+  // Draw dots on the timeline
+  // ---------------------------------------------------
 
-  for (var i = 1; i < vis.provData.length - 1; i++) {
-    if (vis.provData[i]["AfterY"] - vis.provData[i + 1]["AfterY"] < 15) {
-      if (vis.provData[i - 1]["AfterY"] - vis.provData[i]["AfterY"] < 15) {
-        vis.provData[i + 1]["AfterY"] = vis.provData[i + 1]["AfterY"] - 10;
-      } else {
-        vis.provData[i]["AfterY"] = vis.provData[i]["AfterY"] + 10;
-      }
-    } else if (vis.provData[i - 1]["AfterY"] - vis.provData[i]["AfterY"] < 15) {
-      vis.provData[i]["AfterY"] = vis.provData[i]["AfterY"] - 10;
-    }
-  }
+  //OUTS: do i ned this?
+  // vis.mySVG
+  //   .append("line")
+  //   .classed("timeline", true)
+  //   .attr("y2", vis.innerHeight)
+  //   .attr(
+  //     "transform",
+  //     "translate(" +
+  //       (vis.options.margin.left + 50) +
+  //       "," +
+  //       vis.options.margin.top +
+  //       ")"
+  //   );
 
-  vis.provData.sort(function (a, b) {
-    return b.First - a.First;
-  });
+  vis.linkLayer = vis.mySVG
+    .append("g")
+    .attr(
+      "transform",
+      "translate(" +
+        (vis.options.margin.left + 50) +
+        "," +
+        vis.options.margin.top +
+        ")"
+    );
+  vis.labelLayer = vis.mySVG
+    .append("g")
+    .attr(
+      "transform",
+      "translate(" +
+        vis.options.margin.left +
+        "," +
+        vis.options.margin.top +
+        ")"
+    );
+  vis.dotLayer = vis.mySVG
+    .append("g")
+    .attr(
+      "transform",
+      "translate(" +
+        (vis.options.margin.left + 50) +
+        "," +
+        vis.options.margin.top +
+        ")"
+    );
 
-  // Create slopegraph labels
-  vis.svg
-    .selectAll("text.labels")
-    .data(vis.provData)
+  vis.dotLayer
+    .selectAll("circle.dot")
+    .data(vis.nodes)
     .enter()
-    .append("text")
-    .text(function (d) {
-      return d.District;
-    })
-    .attr("class", function (d) {
-      return "label " + d.Change;
-    })
-    .attr("text-anchor", "end")
-    .attr("x", vis.opts.margin.left * 0.6)
-    .attr("y", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
-    })
-    .attr("dy", ".35em");
-
-  // Create slopegraph left value labels
-  vis.svg
-    .selectAll("text.leftvalues")
-    .data(vis.provData)
-    .enter()
-    .append("text")
-    .attr("class", function (d) {
-      return d.Change;
-    })
-    .text(function (d) {
-      return Math.round(d.First) + "%";
-    })
-    .attr("text-anchor", "end")
-    .attr("x", vis.opts.margin.left * 0.85)
-    .attr("y", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - d.BeforeY;
-    })
-    .attr("dy", ".35em");
-
-  // Create slopegraph right value labels
-  vis.svg
-    .selectAll("text.rightvalues")
-    .data(vis.provData)
-    .enter()
-    .append("text")
-    .attr("class", function (d) {
-      return d.Change;
-    })
-    .text(function (d) {
-      return Math.round(d.Last) + "%";
-    })
-    .attr("text-anchor", "start")
-    .attr("x", vis.chartWidth + vis.opts.margin.right)
-    .attr("y", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - d.AfterY;
-    })
-    .attr("dy", ".35em");
-
-  // Create slopegraph lines
-  vis.svg
-    .selectAll("line.slope-line")
-    .data(vis.provData)
-    .enter()
-    .append("line")
-    .attr("class", function (d) {
-      return "slope-line " + d.Change + " " + d.District;
-    })
-    .attr("x1", vis.opts.margin.left)
-    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("y1", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
-    })
-    .attr("y2", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
+    .append("circle")
+    .classed("dot", true)
+    .attr("r", 3)
+    .attr("cy", function (d) {
+      return d.getRoot().idealPos;
     });
-  // .on("mouseover", mouseover)
-  // .on("mouseout", mouseout);
 
-  // Create slopegraph left circles
-  vis.svg
-    .selectAll("line.left-circle")
-    .data(vis.provData)
-    .enter()
-    .append("circle")
-    .attr("class", function (d) {
-      return d.Change;
-    })
-    .attr("cx", vis.opts.margin.left)
-    .attr("cy", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.First);
-    })
-    .attr("r", 3);
+  function color(d, i) {
+    return vis.colorScale(i);
+  }
 
-  // Create slopegraph right circles
-  vis.svg
-    .selectAll("line.left-circle")
-    .data(vis.provData)
-    .enter()
-    .append("circle")
-    .attr("class", function (d) {
-      return d.Change;
-    })
-    .attr("cx", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("cy", function (d) {
-      return vis.opts.margin.top + vis.chartHeight - vis.vertScale(d.Last);
-    })
-    .attr("r", 3);
+  //---------------------------------------------------
+  // Labella has utility to help rendering
+  //---------------------------------------------------
 
-  // Create bottom area denoting years
-  vis.svg
-    .append("line")
-    .attr("x1", vis.opts.margin.left)
-    .attr("x2", vis.opts.margin.left)
-    .attr("y1", vis.opts.height - vis.opts.margin.bottom)
-    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
-    .attr("stroke", "grey")
-    .attr("stroke-width", "2px");
+  vis.renderer = new labella.Renderer({
+    layerGap: 60,
+    nodeHeight: vis.nodes[0].width,
+    direction: "left",
+  });
 
-  vis.svg
-    .append("line")
-    .attr("x1", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("y1", vis.opts.height - vis.opts.margin.bottom)
-    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
-    .attr("stroke", "grey")
-    .attr("stroke-width", "2px");
+  function draw(nodes) {
+    nodes = vis.nodes;
+    // Add x,y,dx,dy to node
+    console.log(vis.renderer.layout(nodes));
+    vis.renderer.layout(nodes);
 
-  vis.svg
-    .append("line")
-    .attr("x1", vis.opts.margin.left)
-    .attr("x2", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("y1", vis.opts.height - vis.opts.margin.bottom * 0.7)
-    .attr("y2", vis.opts.height - vis.opts.margin.bottom * 0.7)
-    .attr("stroke", "grey")
-    .attr("stroke-width", "2px");
+    // Draw label rectangles
+    vis.sEnter = vis.labelLayer
+      .selectAll("rect.flag")
+      .data(nodes)
+      .enter()
+      .append("g")
+      .attr("transform", function (d) {
+        return "translate(" + d.x + "," + (d.y - d.dy / 2) + ")";
+      });
 
-  vis.svg
-    .append("text")
-    .text("2004")
-    .attr("class", "neutral")
-    .attr("x", vis.opts.margin.left)
-    .attr("y", vis.opts.height - vis.opts.margin.bottom * 0.05)
-    .attr("text-anchor", "start");
+    vis.sEnter
+      .append("rect")
+      .classed("flag", true)
+      .attr("width", function (d) {
+        return d.data.w + 10;
+      })
+      .attr("height", function (d) {
+        return d.dy;
+      })
+      .attr("rx", 2)
+      .attr("ry", 2)
+      .style("fill", color);
 
-  vis.svg
-    .append("text")
-    .text("2014")
-    .attr("class", "neutral")
-    .attr("x", vis.chartWidth + vis.opts.margin.right * 0.75)
-    .attr("y", vis.opts.height - vis.opts.margin.bottom * 0.05)
-    .attr("text-anchor", "end");
+    vis.sEnter
+      .append("text")
+      .attr("x", 4)
+      .attr("y", 15)
+      .style("fill", "#fff")
+      .text(function (d) {
+        return labelText(d.data);
+      });
 
-  vis.wrangleData();
-};
+    //OUTS: how to get the path to go all the way to the rect?
+    // Draw path from point on the timeline to the label rectangle
+    vis.linkLayer
+      .selectAll("path.link")
+      .data(nodes)
+      .enter()
+      .append("path")
+      .classed("link", true)
+      .attr("d", function (d) {
+        console.log(d);
+        console.log(vis.renderer.generatePath(d));
+        return vis.renderer.generatePath(d);
+      })
+      .style("stroke", color)
+      .style("stroke-width", 2)
+      .style("opacity", 0.6)
+      .style("fill", "none");
+  }
 
-SlopeGraph.prototype.wrangleData = function () {
-  let vis = this;
-  vis.updateVis();
-};
+  //---------------------------------------------------
+  // Use labella.Force to place the labels
+  //---------------------------------------------------
 
-SlopeGraph.prototype.updateVis = function () {
-  let vis = this;
+  vis.force = new labella.Force({
+    minPos: -10,
+  })
+    .nodes(vis.nodes)
+    .compute();
+
+  draw(vis.force.nodes());
 };

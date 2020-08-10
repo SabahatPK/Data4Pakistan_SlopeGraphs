@@ -1,166 +1,136 @@
-// ---------------------------------------------------
-// Create dummy data
-// ---------------------------------------------------
+//Follow this: https://gist.github.com/mwburke/9873c09ac6c21d6ac9153e54892cf5ec
 
-var data = [
-  { date: new Date(1977, 4, 25), episode: 4, name: "A New Hope" },
-  { date: new Date(1980, 4, 17), episode: 5, name: "The Empire Strikes Back" },
-  { date: new Date(1984, 4, 25), episode: 6, name: "Return of the Jedi" },
-  { date: new Date(1999, 4, 19), episode: 1, name: "The Phantom Menace" },
-  { date: new Date(2002, 4, 16), episode: 2, name: "Attack of the Clones" },
-  { date: new Date(2005, 4, 19), episode: 3, name: "Revenge of the Sith" },
-  { date: new Date(2015, 11, 18), episode: 7, name: "The Force Awakens" },
+let promises = [
+  d3.csv("/data/Data4Pakistan-BalochistanOnly.csv"),
+  d3.csv("/data/Data4Pakistan-SindhOnly.csv"),
+  d3.csv("/data/Data4Pakistan-ICTOnly.csv"),
+  d3.csv("/data/Data4Pakistan-KPKOnly.csv"),
+  d3.csv("/data/Data4Pakistan-PunjabOnly.csv"),
 ];
 
-console.log(data);
+let updatedBalochData = [];
+let updatedSindhData = [];
+let updatedICTData = [];
+let updatedKPKData = [];
+let updatedPunjabData = [];
 
-var options = {
-  margin: { left: 20, right: 20, top: 20, bottom: 20 },
-  initialWidth: 300,
-  initialHeight: 220,
-};
+let dataBalochDomain;
+let dataSindhDomain;
+let dataICTDomain;
+let dataKPKDomain;
+let dataPunjabDomain;
 
-var innerWidth =
-  options.initialWidth - options.margin.left - options.margin.right;
-var innerHeight =
-  options.initialHeight - options.margin.top - options.margin.bottom;
-var colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+let slopeGraphBaloch;
+let slopeGraphSindh;
+let slopeGraphICT;
+let slopeGraphKPK;
+let slopeGraphPunjab;
 
-var vis = d3
-  .select("#timeline")
-  .append("svg")
-  .attr("width", options.initialWidth)
-  .attr("height", options.initialHeight)
-  .append("g")
-  .attr(
-    "transform",
-    "translate(" + options.margin.left + "," + options.margin.top + ")"
+let provNameBaloch = "";
+let provNameICT = "";
+let provNameKPK = "";
+let provNamePunjab = "";
+let provNameSindh = "";
+
+//DATA clean-up/manipulation:
+//1. Downloaded Data4Pak dataset into Excel.
+//2. EXCEL - Deleted out all cols except those with data.Province === Balochistan and col = "Poverty Rate (%)"
+//3. EXCEL - Deleted all rows without value for "Poverty Rate (%)"
+//4. EXCEL - Ordered by Year
+//5. Saved as csv, loaded into main.js for further manipulation:
+Promise.all(promises).then(function (data) {
+  console.log(data);
+
+  for (let i = 0; i < data.length; i++) {
+    let allPovertyData = [];
+
+    //Go into each province's array and build one object out of every two:
+    for (let j = 0; j < data[i].length; j += 2) {
+      let updatedObj = { District: "", First: "", Last: "" };
+      updatedObj.District = data[i][j].District;
+      updatedObj.First = parseInt(data[i][j]["Poverty Rate (%)"]);
+      updatedObj.Last = parseInt(data[i][j + 1]["Poverty Rate (%)"]);
+      if (data[i][j]["Province"] === "Balochistan") {
+        updatedBalochData.push(updatedObj);
+        provNameBaloch = "Balochistan";
+      } else if (data[i][j]["Province"] === "Federal Capital Territory") {
+        updatedICTData.push(updatedObj);
+        provNameICT = "Federal Capital Territory";
+      } else if (data[i][j]["Province"] === "Khyber Pakhtunkhwa") {
+        updatedKPKData.push(updatedObj);
+        provNameKPK = "Khyber Pakhtunkhwa";
+      } else if (data[i][j]["Province"] === "Punjab") {
+        updatedPunjabData.push(updatedObj);
+        provNamePunjab = "Punjab";
+      } else {
+        updatedSindhData.push(updatedObj);
+        provNameSindh = "Sindh";
+      }
+    }
+
+    //Go into each province's array and calc min and max poverty rate for each:
+    for (let j = 0; j < data[i].length; j++) {
+      allPovertyData.push(parseInt(data[i][j]["Poverty Rate (%)"]));
+      if (data[i][j]["Province"] === "Balochistan") {
+        dataBalochDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Federal Capital Territory") {
+        dataICTDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Khyber Pakhtunkhwa") {
+        dataKPKDomain = d3.extent(allPovertyData);
+      } else if (data[i][j]["Province"] === "Punjab") {
+        dataPunjabDomain = d3.extent(allPovertyData);
+      } else {
+        dataSindhDomain = d3.extent(allPovertyData);
+      }
+    }
+  }
+
+  slopeGraphKPK = new SlopeGraph(
+    "#chart1",
+    updatedKPKData,
+    dataKPKDomain,
+    "#provNameKPK",
+    provNameKPK
   );
 
-function labelText(d) {
-  return d.date.getFullYear() + " - " + d.name;
-}
+  // slopeGraphPunjab = new SlopeGraph(
+  //   "#chart2",
+  //   updatedPunjabData,
+  //   dataPunjabDomain,
+  //   "#provNamePunjab",
+  //   provNamePunjab
+  // );
+  // slopeGraphICT = new SlopeGraph(
+  //   "#chart3",
+  //   updatedICTData,
+  //   dataICTDomain,
+  //   "#provNameICT",
+  //   provNameICT
+  // );
+  // slopeGraphSindh = new SlopeGraph(
+  //   "#chart4",
+  //   updatedSindhData,
+  //   dataSindhDomain,
+  //   "#provNameSindh",
+  //   provNameSindh
+  // );
+  // slopeGraphBaloch = new SlopeGraph(
+  //   "#chart5",
+  //   updatedBalochData,
+  //   dataBalochDomain,
+  //   "#provNameBaloch",
+  //   provNameBaloch
+  // );
 
-// compute labels dimension
-var dummyText = vis.append("text");
-
-var timeScale = d3
-  .scaleTime()
-  .domain(
-    d3.extent(data, function (d) {
-      return d.date;
-    })
-  )
-  .range([0, innerHeight])
-  .nice();
-
-var nodes = data.map(function (movie) {
-  console.log(movie);
-  console.log(labelText(movie));
-  console.log(dummyText.text(labelText(movie)));
-  var bbox = dummyText.text(labelText(movie))[0][0].getBBox();
-  movie.h = bbox.height;
-  movie.w = bbox.width;
-  return new labella.Node(timeScale(movie.date), movie.h + 4, movie);
+  //END OF DATA LOADING
 });
 
-dummyText.remove();
+// function mouseover(d) {
+//   console.log(d);
+//   // let selectedDistrict = d.District;
+//   // console.log(d3.selectAll(".slope-line" + d.Change + selectedDistrict));
+// }
 
-// ---------------------------------------------------
-// Draw dots on the timeline
-// ---------------------------------------------------
-
-vis.append("line").classed("timeline", true).attr("y2", innerHeight);
-
-var linkLayer = vis.append("g");
-var labelLayer = vis.append("g");
-var dotLayer = vis.append("g");
-
-dotLayer
-  .selectAll("circle.dot")
-  .data(nodes)
-  .enter()
-  .append("circle")
-  .classed("dot", true)
-  .attr("r", 3)
-  .attr("cy", function (d) {
-    return d.getRoot().idealPos;
-  });
-
-function color(d, i) {
-  return "#888";
-}
-
-//---------------------------------------------------
-// Labella has utility to help rendering
-//---------------------------------------------------
-
-var renderer = new labella.Renderer({
-  layerGap: 60,
-  nodeHeight: nodes[0].width,
-  direction: "right",
-});
-
-function draw(nodes) {
-  // Add x,y,dx,dy to node
-  renderer.layout(nodes);
-
-  // Draw label rectangles
-  var sEnter = labelLayer
-    .selectAll("rect.flag")
-    .data(nodes)
-    .enter()
-    .append("g")
-    .attr("transform", function (d) {
-      return "translate(" + d.x + "," + (d.y - d.dy / 2) + ")";
-    });
-
-  sEnter
-    .append("rect")
-    .classed("flag", true)
-    .attr("width", function (d) {
-      return d.data.w + 9;
-    })
-    .attr("height", function (d) {
-      return d.dy;
-    })
-    .attr("rx", 2)
-    .attr("ry", 2)
-    .style("fill", color);
-
-  sEnter
-    .append("text")
-    .attr("x", 4)
-    .attr("y", 15)
-    .style("fill", "#fff")
-    .text(function (d) {
-      return labelText(d.data);
-    });
-
-  // Draw path from point on the timeline to the label rectangle
-  linkLayer
-    .selectAll("path.link")
-    .data(nodes)
-    .enter()
-    .append("path")
-    .classed("link", true)
-    .attr("d", function (d) {
-      return renderer.generatePath(d);
-    })
-    .style("stroke", color)
-    .style("stroke-width", 2)
-    .style("opacity", 0.6)
-    .style("fill", "none");
-}
-
-//---------------------------------------------------
-// Use labella.Force to place the labels
-//---------------------------------------------------
-
-var force = new labella.Force({
-  minPos: -10,
-})
-  .nodes(nodes)
-  .compute();
-
-draw(force.nodes());
+// function mouseout(d) {
+//   console.log("You left!");
+// }
