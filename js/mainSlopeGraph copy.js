@@ -11,10 +11,13 @@ SlopeGraph = function (
   this.provNamePlaceholder = _provNamePlaceholder;
   this.provName = _provName;
 
+  console.log(this.provData);
+
   this.initVis();
 };
 
 SlopeGraph.prototype.initVis = function () {
+  console.log("Am I in here");
   let vis = this;
 
   $(vis.provNamePlaceholder).text(vis.provName);

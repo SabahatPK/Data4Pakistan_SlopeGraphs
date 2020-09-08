@@ -39,8 +39,6 @@ let provNameSindh = "";
 //4. EXCEL - Ordered by Year
 //5. Saved as csv, loaded into main.js for further manipulation:
 Promise.all(promises).then(function (data) {
-  console.log(data);
-
   for (let i = 0; i < data.length; i++) {
     let allPovertyData = [];
 
@@ -93,34 +91,34 @@ Promise.all(promises).then(function (data) {
     provNameKPK
   );
 
-  // slopeGraphPunjab = new SlopeGraph(
-  //   "#chart2",
-  //   updatedPunjabData,
-  //   dataPunjabDomain,
-  //   "#provNamePunjab",
-  //   provNamePunjab
-  // );
-  // slopeGraphICT = new SlopeGraph(
-  //   "#chart3",
-  //   updatedICTData,
-  //   dataICTDomain,
-  //   "#provNameICT",
-  //   provNameICT
-  // );
-  // slopeGraphSindh = new SlopeGraph(
-  //   "#chart4",
-  //   updatedSindhData,
-  //   dataSindhDomain,
-  //   "#provNameSindh",
-  //   provNameSindh
-  // );
-  // slopeGraphBaloch = new SlopeGraph(
-  //   "#chart5",
-  //   updatedBalochData,
-  //   dataBalochDomain,
-  //   "#provNameBaloch",
-  //   provNameBaloch
-  // );
+  slopeGraphPunjab = new SlopeGraph(
+    "#chart2",
+    updatedPunjabData,
+    dataPunjabDomain,
+    "#provNamePunjab",
+    provNamePunjab
+  );
+  slopeGraphICT = new SlopeGraph(
+    "#chart3",
+    updatedICTData,
+    dataICTDomain,
+    "#provNameICT",
+    provNameICT
+  );
+  slopeGraphSindh = new SlopeGraph(
+    "#chart4",
+    updatedSindhData,
+    dataSindhDomain,
+    "#provNameSindh",
+    provNameSindh
+  );
+  slopeGraphBaloch = new SlopeGraph(
+    "#chart5",
+    updatedBalochData,
+    dataBalochDomain,
+    "#provNameBaloch",
+    provNameBaloch
+  );
 
   //END OF DATA LOADING
 });
